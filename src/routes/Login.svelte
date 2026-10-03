@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { currentUser, userMgmtActive, loadAuthState } from '../stores/auth.js';
-  import { loadServerSettings } from '../stores/settings.js';
+  import { loadServerSettings, loadEnvLocks } from '../stores/settings.js';
   import { showError, showSuccess } from '../stores/toast.js';
   import { push } from 'svelte-spa-router';
   import { slide } from 'svelte/transition';
@@ -75,6 +75,7 @@
         return;
       }
       currentUser.set(cached);
+      await loadEnvLocks();
       await loadServerSettings();
       push('/');
     } catch (e) {
@@ -133,6 +134,7 @@
       // a previous session and 403). loadAuthState() handles the fetch and
       // populates localStorage.nt:csrf as a side effect.
       await loadAuthState();
+      await loadEnvLocks();
       await loadServerSettings();
       push('/');
     } catch(e) {

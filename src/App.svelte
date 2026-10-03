@@ -526,25 +526,11 @@
     // we don't double-fetch on cold load.
     await handleOidcCallback();
 
-    // Env-lock state: which Settings sections are configured via env vars.
-    // Fetched globally so the Trace FAB knows about env-set AI_ENABLED
-    // without waiting for the user to visit Settings. Issue #36.
-    // Native server mode needs the Bearer token header explicitly —
-    // credentials:'include' alone (cookies) returns 401 there.
-    if (!isNative || getServerUrl()) {
-      const { getAuthToken } = await import('./lib/platform.js');
-      const headers = {};
-      const token = getAuthToken();
-      if (isNative && token) headers['Authorization'] = `Bearer ${token}`;
-      fetch(apiUrl('/api/app-config/env-locks'), { credentials: 'include', headers })
-        .then(r => r.ok ? r.json() : null)
-        .then(async d => {
-          if (!d) return;
-          const { envLocks } = await import('./stores/settings.js');
-          envLocks.set(d);
-        })
-        .catch(() => {});
-    }
+    // Fetch globally for already-authenticated sessions. Login.svelte invokes
+    // the same loader again after a fresh sign-in because this boot-time call
+    // is expected to receive 401 while the login screen is still active.
+    const { loadEnvLocks } = await import('./stores/settings.js');
+    await loadEnvLocks();
 
     // Show wizard on first launch:
     // - Native server mode: NEVER show wizard (server is already configured)

@@ -5,7 +5,6 @@ export function seedAiFromEnv() {
   const map = {
     AI_ENABLED:  'ai_enabled',
     AI_PROVIDER: 'ai_provider',
-    AI_API_KEY:  'ai_api_key',
     AI_MODEL:    'ai_model',
     // AI_BASE_URL enables server-side proxying for the `oai-compat`
     // provider (Ollama, LM Studio, LocalAI, vLLM, etc.). Required when
@@ -26,6 +25,13 @@ export function seedAiFromEnv() {
       locked = true;
     }
   }
+  // Keep an env-provided API key in process memory only. Persisting it in
+  // app_config would copy the secret into SQLite and every full backup even
+  // though the container already receives it through AI_API_KEY_FILE.
+  if (process.env.AI_API_KEY != null) {
+    del.run('ai_api_key');
+    locked = true;
+  }
   if (locked) {
     upsert.run('ai_env_locked', 'true');
   } else {
@@ -40,6 +46,7 @@ export function getAiConfig() {
   const rows = db.prepare("SELECT key, value FROM app_config WHERE key LIKE 'ai_%'").all();
   const cfg = {};
   for (const { key, value } of rows) cfg[key] = value;
+  if (process.env.AI_API_KEY != null) cfg.ai_api_key = process.env.AI_API_KEY;
   return cfg;
 }
 

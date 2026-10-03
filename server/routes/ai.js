@@ -4,6 +4,8 @@ import { wrap } from '../logger.js';
 import { getAiConfig } from '../ai.js';
 import { makeRateLimiter } from '../middleware/rate-limit.js';
 import { getOpenAIChatParams } from '../lib/openai-chat-params.js';
+import { anthropicMessagesUrl } from '../lib/anthropic-base-url.js';
+import { parseAnthropicResponse } from '../lib/anthropic-response.js';
 import db from '../db.js';
 
 const router = Router();
@@ -189,7 +191,7 @@ router.post('/chat', requireAuth, aiChatLimit, wrap(async (req, res) => {
 
   let result;
   switch (provider) {
-    case 'claude':     result = await _callClaude(apiKey, model, messages, systemPrompt, toolsArr); break;
+    case 'claude':     result = await _callClaude(apiKey, model, messages, systemPrompt, toolsArr, baseUrl); break;
     case 'openai':     result = await _callOpenAI(apiKey, model, messages, systemPrompt, toolsArr, 'https://api.openai.com'); break;
     case 'gemini':     result = await _callGemini(apiKey, model, messages, systemPrompt, toolsArr); break;
     case 'oai-compat': result = await _callOpenAI(apiKey || 'no-key', model, messages, systemPrompt, toolsArr, baseUrl.replace(/\/+$/, '')); break;
@@ -210,7 +212,7 @@ export default router;
 // so the client can append it verbatim to its message history before
 // dispatching tool results back through the proxy.
 
-async function _callClaude(apiKey, model, messages, systemPrompt, tools) {
+async function _callClaude(apiKey, model, messages, systemPrompt, tools, baseUrl) {
   const claudeMessages = _openaiToClaudeMessages(messages);
   const claudeTools    = (tools || []).map(t => ({
     name: t.name,
@@ -226,7 +228,7 @@ async function _callClaude(apiKey, model, messages, systemPrompt, tools) {
   };
   if (claudeTools.length) body.tools = claudeTools;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch(anthropicMessagesUrl(baseUrl), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -238,27 +240,7 @@ async function _callClaude(apiKey, model, messages, systemPrompt, tools) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error?.message || `Claude API error ${res.status}`);
 
-  const blocks    = data.content || [];
-  const toolUses  = blocks.filter(b => b.type === 'tool_use');
-  const textParts = blocks.filter(b => b.type === 'text').map(b => b.text);
-
-  if (toolUses.length === 0 || data.stop_reason !== 'tool_use') {
-    return { text: textParts.join('\n') || '' };
-  }
-  // Build OpenAI-shape assistant message echoing the tool calls. The
-  // client appends this, executes tools, then re-invokes the proxy with
-  // tool-result messages — we translate back to Claude on the next round.
-  const assistantMessage = {
-    role: 'assistant',
-    content: textParts.join('\n') || null,
-    tool_calls: toolUses.map(tu => ({
-      id: tu.id,
-      type: 'function',
-      function: { name: tu.name, arguments: JSON.stringify(tu.input || {}) },
-    })),
-  };
-  const toolCalls = toolUses.map(tu => ({ id: tu.id, name: tu.name, args: tu.input || {} }));
-  return { assistantMessage, toolCalls };
+  return parseAnthropicResponse(data);
 }
 
 async function _callOpenAI(apiKey, model, messages, systemPrompt, tools, baseUrl = 'https://api.openai.com') {

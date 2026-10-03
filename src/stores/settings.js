@@ -964,6 +964,34 @@ export const ntfyToken            = createSettingStore('ntfyToken',            '
 // where AI_ENABLED=true in compose locked the toggle in its OFF state
 // because the per-user `aiEnabled` was never flipped.
 export const envLocks = writable({ smtp: false, ai: false, ai_enabled: false, off_local: false, off_local_only: false, oidc_provider_ids: [], lifttrace_connected: false });
+
+// Refresh the server's environment-controlled feature state after auth changes.
+// On a fresh web session App.svelte initially receives 401 here; Login.svelte
+// calls this again immediately after authentication so env-enabled features do
+// not require a full page reload before they appear.
+export async function loadEnvLocks() {
+  if (isNative && !getServerUrl()) return null;
+
+  try {
+    const headers = {};
+    const token = getAuthToken();
+    if (isNative && token) headers.Authorization = `Bearer ${token}`;
+
+    const response = await fetch(apiUrl('/api/app-config/env-locks'), {
+      credentials: 'include',
+      headers,
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    envLocks.set(data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 // Derived: AI Assistant is effectively enabled when either the per-user
 // toggle is on, OR an operator set AI_ENABLED=true in env and env-locked it.
 // Use this instead of $aiEnabled wherever the FAB / chat / Smart Log
