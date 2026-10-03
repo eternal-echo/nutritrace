@@ -1,0 +1,41 @@
+scripts/anthropic-response.test.js
+  s_e0ecd39dba1e99::t_578fbd7faf5bd0 1-52
+server/lib/anthropic-response.js
+  s_e0ecd39dba1e99::t_8024e6e0251dc3 1-35
+scripts/anthropic-base-url.test.js
+  s_e0ecd39dba1e99::t_ee111546a9f6da 1-25
+server/routes/ai.js
+  s_e0ecd39dba1e99::t_8024e6e0251dc3 8,243
+  s_e0ecd39dba1e99::t_a0bc8562b3ac77 7,194,215,231
+scripts/ai-secret-runtime.test.js
+  s_e0ecd39dba1e99::t_f1e9005cdb4d5e 1-18
+server/lib/anthropic-base-url.js
+  s_e0ecd39dba1e99::t_a0bc8562b3ac77 1-7
+scripts/ai-env-lock-login.test.js
+  s_e0ecd39dba1e99::t_610068f26f56cb 1-21,29-32
+  s_e0ecd39dba1e99::t_bde6ed252d9903 22-28
+src/App.svelte
+  s_e0ecd39dba1e99::t_bcfeb315511a83 529-533
+src/routes/Login.svelte
+  s_e0ecd39dba1e99::t_bcfeb315511a83 4,78,137
+src/stores/settings.js
+  s_e0ecd39dba1e99::t_bcfeb315511a83 966-995
+server/ai.js
+  s_e0ecd39dba1e99::t_152e92c1aa7b4e 28-34,49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8364c643fc6b3b7c44e7a0c4c53530ff91e36c56",
+  "prompts": {},
+  "sessions": {
+    "s_e0ecd39dba1e99": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0fb68-4fdd-75c3-b950-90524c6b7b3e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "henry.yuan <henry.yuan2@nio.com>"
+    }
+  }
+}
