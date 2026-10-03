@@ -1,0 +1,25 @@
+package.json
+  s_e0ecd39dba1e99::t_7bc493d4c95f6e 45
+server/package-lock.json
+  s_e0ecd39dba1e99::t_855024b1b5a627 24,26,1177-1179,1454-1456,1459,2074-2076
+server/package.json
+  s_e0ecd39dba1e99::t_3062413da14a1b 23,25
+package-lock.json
+  s_e0ecd39dba1e99::t_49c3f70a875910 37,3593-3595,4509-4511,5768-5770,5773
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0eb60c0675af215a60c0dfeb14294e6be048f839",
+  "prompts": {},
+  "sessions": {
+    "s_e0ecd39dba1e99": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0fb68-4fdd-75c3-b950-90524c6b7b3e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "henry.yuan <henry.yuan2@nio.com>"
+    }
+  }
+}
